@@ -25,4 +25,44 @@ public class EventEntity {
 
     @Column(name = "end_ts", nullable = false)
     private String endTs;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public PlanEntity getPlan() {
+        return plan;
+    }
+
+    public void setPlan(PlanEntity plan) {
+        this.plan = plan;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getStartTs() {
+        return startTs;
+    }
+
+    public void setStartTs(String startTs) {
+        this.startTs = startTs;
+    }
+
+    public String getEndTs() {
+        return endTs;
+    }
+
+    public void setEndTs(String endTs) {
+        this.endTs = endTs;
+    }
 }
