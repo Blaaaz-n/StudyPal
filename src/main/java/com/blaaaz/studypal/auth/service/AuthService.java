@@ -35,15 +35,14 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing required fields");
         }
 
-        String email = normalizeEmail(req.getEmail());
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmailIgnoreCase(req.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
         }
 
         UserEntity user = new UserEntity();
         user.setFirstName(req.getFirstName().trim());
         user.setLastName(req.getLastName().trim());
-        user.setEmail(email);
+        user.setEmail(req.getEmail().trim());
         user.setPasswordhash(passwordEncoder.encode(req.getPassword()));
 
         user = userRepository.save(user);
@@ -58,8 +57,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing email or password");
         }
 
-        String email = normalizeEmail(req.getEmail());
-        UserEntity user = userRepository.findByEmail(email)
+        UserEntity user = userRepository.findByEmailIgnoreCase(req.getEmail())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
 
         if (!passwordEncoder.matches(req.getPassword(), user.getPasswordhash())) {
@@ -68,10 +66,6 @@ public class AuthService {
 
         String token = jwtUtil.generateToken(String.valueOf(user.getId()), user.getEmail());
         return new AuthResponse(token, user.getId(), user.getFirstName(), user.getLastName(), user.getEmail());
-    }
-
-    private String normalizeEmail(String email) {
-        return email == null ? null : email.trim().toLowerCase();
     }
 
     private boolean isBlank(String s) {
