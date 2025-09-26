@@ -56,4 +56,19 @@ public class UserRepository {
                 .getSingleResult();
         return count > 0;
     }
+    public Optional<UserEntity> findByEmailIgnoreCase(String email) {
+        List<UserEntity> results = entityManager.createQuery(
+                        "SELECT u FROM UserEntity u WHERE LOWER(u.email) = LOWER(:email)", UserEntity.class)
+                .setParameter("email", email)
+                .getResultList();
+        return results.stream().findFirst();
+    }
+
+    public boolean existsByEmailIgnoreCase(String email) {
+        Long count = entityManager.createQuery(
+                        "SELECT COUNT(u) FROM UserEntity u WHERE LOWER(u.email) = LOWER(:email)", Long.class)
+                .setParameter("email", email)
+                .getSingleResult();
+        return count > 0;
+    }
 }

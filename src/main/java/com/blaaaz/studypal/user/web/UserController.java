@@ -1,17 +1,13 @@
 package com.blaaaz.studypal.user.web;
 
-
 import com.blaaaz.studypal.user.model.UserEntity;
 import com.blaaaz.studypal.user.service.UserService;
-import org.apache.catalina.User;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -23,44 +19,50 @@ public class UserController {
         this.user = user;
     }
 
-    // get list of all users
+    // all users (keep only if you really want it exposed)
+    @GetMapping
     public List<UserEntity> getAllUsers() {
         return user.listAll();
     }
 
-    // get current user
+    // current user from JWT
     @GetMapping("/me")
-    public UserEntity getCurrentUser(@RequestParam long id) {
-        return user.getById(id);
+    public ResponseEntity<UserEntity> getCurrentUser(Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        return ResponseEntity.ok(user.getById(userId));
     }
 
-    // get one user by id
+    // one user by id
     @GetMapping("/{id}")
-    public UserEntity getUser(@RequestParam long id) {
-        return user.getById(id);
+    public ResponseEntity<UserEntity> getUser(@PathVariable long id) {
+        return ResponseEntity.ok(user.getById(id));
     }
 
-    // update user profil
-    @GetMapping("/{id}")
-    public UserEntity uptadeUser(@RequestParam long id,
-                                 @RequestParam(required = false) String firstName,
-                                 @RequestParam(required = false) String lastName,
-                                 @RequestParam(required = false) String email) {
-        return user.updateProfile(id, firstName, lastName, email);
+    // update profile of current user
+    @PutMapping("/me")
+    public ResponseEntity<UserEntity> updateMe(
+            Authentication auth,
+            @RequestBody Map<String, String> body
+    ) {
+        Long userId = (Long) auth.getPrincipal();
+        return ResponseEntity.ok(
+                user.updateProfile(userId, body.get("firstName"), body.get("lastName"), body.get("email"))
+        );
     }
 
-    // change password
-    @GetMapping("/{id}/password")
-    public ResponseEntity<String> changePassword(@RequestParam long id,
-                                                 @RequestParam String rawPassword) {
-        user.changePassword(id, rawPassword);
+    // change password of current user
+    @PatchMapping("/me/password")
+    public ResponseEntity<String> changeMyPassword(Authentication auth, @RequestBody Map<String, String> body) {
+        Long userId = (Long) auth.getPrincipal();
+        user.changePassword(userId, body.get("password"));
         return ResponseEntity.ok("Password changed");
     }
 
-    //Delete user by id
-    @GetMapping("/{id}/delete")
-    public ResponseEntity<String> deleteUser(@RequestParam long id) {
-        user.deleteById(id);
+    // delete current user
+    @DeleteMapping("/me")
+    public ResponseEntity<String> deleteMe(Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        user.deleteById(userId);
         return ResponseEntity.ok("User deleted");
     }
 }
