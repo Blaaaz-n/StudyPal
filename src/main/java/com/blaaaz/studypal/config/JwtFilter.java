@@ -43,7 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
             String token = header.substring(7);
 
             if (jwtUtil.validateToken(token)) {
-                String email = jwtUtil.extractEmail(token);
+                String email = jwtUtil.extractUserEmail(token);
                 Optional<UserEntity> userOpt = userRepository.findByEmail(email);
 
                 if (userOpt.isPresent()) {
