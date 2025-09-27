@@ -1,7 +1,6 @@
 package com.blaaaz.studypal.plan.repository;
 
 import com.blaaaz.studypal.plan.model.PlanEntity;
-import com.blaaaz.studypal.user.model.UserEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -27,25 +26,38 @@ public class PlanRepository {
     }
 
     public Optional<PlanEntity> findById(Long id) {
-        return Optional.ofNullable(entityManager.find(PlanEntity.class, id));
+        PlanEntity p = entityManager.find(PlanEntity.class, id);
+        return Optional.ofNullable(p);
     }
 
-    public List<PlanEntity> findByUser(UserEntity user) {
+    public List<PlanEntity> findByUserId(Long userId) {
         return entityManager.createQuery(
-                        "SELECT p FROM PlanEntity p WHERE p.user = :user", PlanEntity.class)
-                .setParameter("user", user)
+                        "SELECT p FROM PlanEntity p WHERE p.user.id = :uid ORDER BY p.startDate ASC, p.id ASC",
+                        PlanEntity.class)
+                .setParameter("uid", userId)
                 .getResultList();
     }
 
+    public Optional<PlanEntity> findByIdAndUserId(Long planId, Long userId) {
+        List<PlanEntity> result = entityManager.createQuery(
+                        "SELECT p FROM PlanEntity p WHERE p.id = :pid AND p.user.id = :uid",
+                        PlanEntity.class)
+                .setParameter("pid", planId)
+                .setParameter("uid", userId)
+                .getResultList();
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+    }
+
     public List<PlanEntity> findAll() {
-        return entityManager.createQuery("SELECT p FROM PlanEntity p", PlanEntity.class)
+        return entityManager.createQuery("SELECT p FROM PlanEntity p ORDER BY p.id ASC", PlanEntity.class)
                 .getResultList();
     }
 
     public void delete(PlanEntity plan) {
+        PlanEntity managed = plan;
         if (!entityManager.contains(plan)) {
-            plan = entityManager.merge(plan);
+            managed = entityManager.merge(plan);
         }
-        entityManager.remove(plan);
+        entityManager.remove(managed);
     }
 }
